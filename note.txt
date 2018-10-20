@@ -1,0 +1,9 @@
+1.預處理
+ - 產生資料子集
+	- 只拿n筆transaction裡面
+    - 把裡面的item拿去mode N
+ - 用成{tid:[list of item_id]}的格式
+2.實做Ari演算法
+ - 測試 
+    - 拿別的套件
+    - 肉眼
