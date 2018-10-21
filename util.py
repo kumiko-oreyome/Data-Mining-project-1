@@ -2,6 +2,9 @@ import json,collections
 
 
 
+
+
+
 def read_ibm_file(ibm_path):
     with open(ibm_path,'r') as f:
         d = collections.OrderedDict()
@@ -25,5 +28,10 @@ def dump_lines(lines,path):
            f.write(line+'\n')
 
 
-def readlines(path):
-    pass
+def read_trans_lines(path):
+    trans = []
+    with open(path,'r') as f:
+        for l in f:
+            items = l.rstrip().split(",")
+            trans.append(set(items))
+    return trans

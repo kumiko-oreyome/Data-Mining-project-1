@@ -1,2 +1,4 @@
 https://github.com/halfvim/quest
 http://www.almaden.ibm.com/cs/quest/syndata.html
+https://github.com/coorty/apriori-agorithm-python
+https://github.com/hnn-project/python-apriori
