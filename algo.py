@@ -1,6 +1,33 @@
 from util import  read_trans_lines
 import itertools
 
+
+
+
+
+
+class Rule():
+    def __init__(self,lhs,rhs):
+        self.lhs = lhs
+        self.rhs = rhs
+    def itemset_str(self,itemset):
+        return ",".join(sorted(list(itemset)))
+
+    def get_rhs(self):
+        return self.rhs
+
+
+    def __str__(self):
+        return '%s->%s'%(self.itemset_str(self.lhs),self.itemset_str(self.rhs))
+
+    def __eq__(self,other):
+        return other.lhs == self.lhs and other.rhs == self.rhs
+
+
+
+
+
+
 def brute_apriori(path,min_sup,min_conf):
     def join_candidates(freq_itemsets):
         candidates = []
@@ -29,12 +56,11 @@ def brute_apriori(path,min_sup,min_conf):
             if flag :
                 pruned.append(itemset)
         return pruned     
-
     trans = read_trans_lines(path)
     min_sup_cnt = len(trans)*min_sup
     # generate freq itemset
     freq_itemsets = []
-    ret = []
+    all_freq = []
     all_item = get_all_item(trans)
     # generate 1 item freq
     for item in all_item:
@@ -42,7 +68,7 @@ def brute_apriori(path,min_sup,min_conf):
         freq =  count_freq(trans,item)
         if freq>min_sup_cnt:
             freq_itemsets.append(item)
-    ret.extend(freq_itemsets)
+    all_freq.extend(freq_itemsets)
     for _ in range(1,len(all_item)):
         candidates = join_candidates(freq_itemsets)
         candidates = prune_candidates(candidates,freq_itemsets)
@@ -51,18 +77,52 @@ def brute_apriori(path,min_sup,min_conf):
             if count_freq(trans,itemset) > min_sup_cnt:
                 freqs.append(itemset)
         freq_itemsets = freqs
-        ret.extend(freq_itemsets)
-
-    return ret
-
-
+        all_freq.extend(freq_itemsets)
+    rules = generate_association_rules(trans,all_freq,min_conf)
+    return trans,all_freq,rules
 
 
 
 
+def generate_association_rules(trans,freq_itemset,min_conf):
+    # rule : tuple (frozenset,frozenset)
+    def generate_child_rules(rule):
+        lhs,rhs = rule
+        assert len(lhs)>1
+        subsets_1 = list(map(frozenset,itertools.combinations(lhs,len(lhs)-1)))
+        child_rules = []
+        for subset in subsets_1:
+            new_lhs,new_rhs = subset,rhs|lhs-subset
+            child_rules.append((new_lhs,new_rhs))
+        return child_rules
+    
+    def qualify_rule(rule):
+        conf = confidence(rule[0],rule[1],trans)
+        if conf>=min_conf:
+            return True
+        return False
 
-    # generate rules
+    asso_rules = []
+    for itemset in freq_itemset:
+        if len(itemset)<=1:
+            continue
+        root_rule = (frozenset(itemset),frozenset([])) 
+        # enumerate rhs number to apply prune
+        new_rules_li = [root_rule]
+        child_rules = generate_child_rules(root_rule)
+        for i in range(1,len(itemset)):
+            new_rules_li =  list(filter(qualify_rule,child_rules))
+            asso_rules.extend(new_rules_li)
+            if i == len(itemset)-1:
+                break
+            child_rules = itertools.chain(*map(generate_child_rules,new_rules_li))
+            child_rules = list(set(child_rules))
 
+    ret_rules = []
+    for rule in asso_rules:
+        ret_rules.append(Rule(rule[0],rule[1]))
+    return ret_rules
+        
 
 
 
@@ -72,9 +132,6 @@ def get_all_item(trans):
         all_item = all_item | tran
     return all_item
 
-def get_confidence():
-    pass
-
 def count_freq(trans,itemset):
     cnt = 0
     for tran in trans:
@@ -82,4 +139,16 @@ def count_freq(trans,itemset):
             cnt+=1
     return cnt
 
-#print(brute_apriori('./datas/test.tl',0.2,0.5))
+
+def confidence(s1,s2,trans):
+    c1,c2 =  count_freq(trans,s1),count_freq(trans,s1|s2)
+    if c1  == 0 :
+        return 0
+    return c2/c1
+
+
+trans,freqs,rules = brute_apriori('./datas/tesco.tl',0.17,0.68)
+for rule in rules:
+    s = str(rule)
+    print(f'{s} : {confidence(rule.lhs,rule.rhs,trans)}')
+#print(rules)
