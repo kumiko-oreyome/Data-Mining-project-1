@@ -1,4 +1,4 @@
-import json,collections
+import json,collections,time
 
 
 
@@ -35,3 +35,17 @@ def read_trans_lines(path):
             items = l.rstrip().split(",")
             trans.append(set(items))
     return trans
+
+
+def record_time(func):
+    def func_with_time(*arg,**kwargs):
+        start_time = time.time()
+        ret =  func(*arg,**kwargs)
+        elapsed_time = time.time() - start_time
+        print(f'elapsed_time {elapsed_time}')
+        return ret
+    return func_with_time
+    
+    
+
+    

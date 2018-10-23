@@ -1,6 +1,6 @@
 from util import  read_trans_lines
 import itertools
-
+from util import record_time
 
 
 
@@ -27,7 +27,7 @@ class Rule():
 
 
 
-
+@record_time
 def brute_apriori(path,min_sup,min_conf):
     def join_candidates(freq_itemsets):
         candidates = []
@@ -66,7 +66,7 @@ def brute_apriori(path,min_sup,min_conf):
     for item in all_item:
         item = set([item])
         freq =  count_freq(trans,item)
-        if freq>min_sup_cnt:
+        if freq>=min_sup_cnt:
             freq_itemsets.append(item)
     all_freq.extend(freq_itemsets)
     for _ in range(1,len(all_item)):
@@ -74,14 +74,12 @@ def brute_apriori(path,min_sup,min_conf):
         candidates = prune_candidates(candidates,freq_itemsets)
         freqs = []
         for itemset in candidates:
-            if count_freq(trans,itemset) > min_sup_cnt:
+            if count_freq(trans,itemset) >= min_sup_cnt:
                 freqs.append(itemset)
         freq_itemsets = freqs
         all_freq.extend(freq_itemsets)
     rules = generate_association_rules(trans,all_freq,min_conf)
     return trans,all_freq,rules
-
-
 
 
 def generate_association_rules(trans,freq_itemset,min_conf):
@@ -122,8 +120,7 @@ def generate_association_rules(trans,freq_itemset,min_conf):
     for rule in asso_rules:
         ret_rules.append(Rule(rule[0],rule[1]))
     return ret_rules
-        
-
+    
 
 
 def get_all_item(trans):
@@ -147,8 +144,16 @@ def confidence(s1,s2,trans):
     return c2/c1
 
 
-trans,freqs,rules = brute_apriori('./datas/tesco.tl',0.17,0.68)
-for rule in rules:
-    s = str(rule)
-    print(f'{s} : {confidence(rule.lhs,rule.rhs,trans)}')
+#def print_freq_itemset():
+#    pass
+
+def print_rules(rules,trans,filepath=None):
+    if filepath is not None:
+        with open(filepath,'w') as f:
+            for rule in rules:
+                s = str(rule)
+                print(f'{s} : {confidence(rule.lhs,rule.rhs,trans)}',file=f)
+
+#trans,freqs,rules = brute_apriori('./datas/tesco.tl',0.17,0.68)
+#print_rules(rules)
 #print(rules)

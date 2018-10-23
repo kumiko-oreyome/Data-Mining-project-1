@@ -1,5 +1,9 @@
-/datas
+/datas/debug
+/datas/rules
 *__pycache__
-*.pdf
-*.pptx
+pdfs/
 /baselines
+res.txt
+pdfs
+*.exe
+*.docx
